@@ -1,0 +1,37 @@
+plugins {
+	id 'java'
+    id 'eclipse'
+}
+
+group = 'com.haiyisoft'
+version = '1.0.0'
+sourceCompatibility = '1.8'
+
+repositories {
+    maven { url "https://maven.aliyun.com/repository/central" }
+	mavenCentral()
+}
+
+dependencies {
+	// implementation 'io.micrometer:micrometer-registry-prometheus:1.3.7'
+	implementation 'io.dropwizard.metrics:metrics-core:4.1.2'
+	implementation 'io.micrometer:micrometer-core:1.3.7'
+	implementation 'org.apache.commons:commons-lang3:3.9'
+	implementation 'commons-io:commons-io:2.6'
+	implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.9'
+	// implementation 'org.elasticsearch.client:elasticsearch-rest-high-level-client:7.2.0'
+	implementation 'org.elasticsearch.client:elasticsearch-rest-client:7.2.0'
+	implementation 'io.lettuce:lettuce-core:5.2.2.RELEASE'
+	implementation 'org.apache.kafka:kafka-clients:1.1.1'
+	implementation 'com.rabbitmq:amqp-client:5.7.3'
+	implementation 'io.netty:netty-all:4.1.15.Final'
+	implementation 'org.slf4j:slf4j-api:1.7.25'
+	implementation 'ch.qos.logback:logback-classic:1.2.3'
+    testImplementation 'junit:junit:4.12'
+}
+
+task createdir {
+	sourceSets*.java.srcDirs*.each { it.mkdirs() }
+    sourceSets*.resources.srcDirs*.each { it.mkdirs()}
+}
+
