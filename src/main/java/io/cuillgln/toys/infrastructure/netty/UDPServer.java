@@ -15,32 +15,24 @@ public class UDPServer {
 
 	private Logger log = LoggerFactory.getLogger(UDPServer.class);
 
-	private EventLoopGroup workerGroup = new NioEventLoopGroup();
-	private volatile boolean running;
+	private EventLoopGroup workerGroup;
 	private int inetPort;
 	private ChannelInitializer<Channel> channelInitializer;
 
 	public UDPServer(int inetPort) {
-		this.inetPort = inetPort;
-	}
-
-	public void start() {
 		try {
+			this.inetPort = inetPort;
+			this.workerGroup = new NioEventLoopGroup();
 			doBind();
-			running = true;
 		} catch (IOException e) {
-			log.error("Exception when bind to UDP port [{}], stop the server", inetPort, e);
-			stop();
+			shutdown();
+			throw new RuntimeException(e);
 		}
 	}
 
-	public void stop() {
-		this.running = false;
+	public void shutdown() {
+		log.info("UDP server shutdown");
 		workerGroup.shutdownGracefully();
-	}
-
-	public boolean isRunning() {
-		return running;
 	}
 
 	private void doBind() throws IOException {
@@ -52,6 +44,8 @@ public class UDPServer {
 		ChannelFuture future = bootstrap.bind(inetPort).awaitUninterruptibly();
 		if (!future.isSuccess()) {
 			throw new IOException(future.cause());
+		} else {
+			log.info("UDP server is running on port {}", inetPort);
 		}
 	}
 }

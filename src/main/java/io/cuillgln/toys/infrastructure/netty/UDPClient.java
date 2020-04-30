@@ -8,9 +8,6 @@ import io.netty.channel.socket.nio.NioDatagramChannel;
 
 import java.io.IOException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * UDP 也可以connect，这样client只能是一client对一server。
  * 如果没有connect可以一client对多server，在DatagramPacket中指定server的 socketAddress。
@@ -20,36 +17,25 @@ import org.slf4j.LoggerFactory;
  */
 public class UDPClient {
 
-	private Logger log = LoggerFactory.getLogger(UDPClient.class);
-
-	private EventLoopGroup workerGroup = new NioEventLoopGroup();
-	private volatile boolean running;
+	private EventLoopGroup workerGroup;
 	private String inetHost;
 	private int inetPort;
 	private ChannelInitializer<Channel> channelInitializer;
 
 	public UDPClient(String inetHost, int inetPort) {
-		this.inetHost = inetHost;
-		this.inetPort = inetPort;
-	}
-
-	public void start() {
 		try {
+			this.workerGroup = new NioEventLoopGroup();
+			this.inetHost = inetHost;
+			this.inetPort = inetPort;
 			doConnect();
-			running = true;
 		} catch (IOException e) {
-			log.error("Exception when connect to UDP port [{}], stop the client", inetPort, e);
-			stop();
+			shutdown();
+			throw new RuntimeException(e);
 		}
 	}
 
-	public void stop() {
-		this.running = false;
+	public void shutdown() {
 		workerGroup.shutdownGracefully();
-	}
-
-	public boolean isRunning() {
-		return running;
 	}
 
 	private void doConnect() throws IOException {

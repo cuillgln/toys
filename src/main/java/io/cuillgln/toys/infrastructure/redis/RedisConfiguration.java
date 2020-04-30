@@ -9,16 +9,17 @@ public class RedisConfiguration {
 
 	private RedisConfigurationProperties redisProperties;
 
-	public RedisClient redisClient() {
-		return RedisClient.create(RedisURI.Builder.redis(redisProperties.getHost(), redisProperties.getPort()).build());
+	public StatefulRedisConnection<String, String> redisConnection() {
+		RedisClient redisClient = RedisClient.create(
+						RedisURI.Builder.redis(redisProperties.getHost(), redisProperties.getPort()).build());
+		return redisClient.connect();
 	}
 
 	public StringRedisTemplate redisTemplate() {
-		StatefulRedisConnection<String, String> conn = redisClient().connect();
+		StatefulRedisConnection<String, String> conn = redisConnection();
 		if (redisProperties.getPassword() != null) {
 			conn.sync().auth(redisProperties.getPassword());
-			conn.async().auth(redisProperties.getPassword());
 		}
-		return new StringRedisTemplate(conn.sync(), conn.async());
+		return new StringRedisTemplate(conn);
 	}
 }

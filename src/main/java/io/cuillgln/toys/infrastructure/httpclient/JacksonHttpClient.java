@@ -4,6 +4,7 @@ package io.cuillgln.toys.infrastructure.httpclient;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
@@ -21,7 +22,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class JacksonHttpClient {
+public class JacksonHttpClient implements Closeable {
 
 	private CloseableHttpClient httpclient;
 	private ObjectMapper objectMapper;
@@ -61,5 +62,10 @@ public class JacksonHttpClient {
 			}
 			return objectMapper.readTree(entity.getContent());
 		}
+	}
+
+	@Override
+	public void close() throws IOException {
+		httpclient.close();
 	}
 }

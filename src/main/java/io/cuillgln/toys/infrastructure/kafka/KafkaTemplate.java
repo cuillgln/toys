@@ -8,8 +8,8 @@ public class KafkaTemplate<K, V> {
 
 	private Producer<K, V> producer;
 
-	public KafkaTemplate(ProducerFactory<K, V> producerFactory) {
-		this.producer = producerFactory.createProducer();
+	public KafkaTemplate(Producer<K, V> producer) {
+		this.producer = producer;
 	}
 
 	public void send(String topic, K key, V value) {

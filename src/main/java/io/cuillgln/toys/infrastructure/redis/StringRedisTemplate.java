@@ -1,6 +1,7 @@
 
 package io.cuillgln.toys.infrastructure.redis;
 
+import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.async.RedisAsyncCommands;
 import io.lettuce.core.api.sync.RedisCommands;
 
@@ -11,10 +12,9 @@ public class StringRedisTemplate {
 	private RedisCommands<String, String> syncCommands;
 	private RedisAsyncCommands<String, String> asyncCommands;
 
-	public StringRedisTemplate(RedisCommands<String, String> syncCommands,
-					RedisAsyncCommands<String, String> asyncCommands) {
-		this.syncCommands = syncCommands;
-		this.asyncCommands = asyncCommands;
+	public StringRedisTemplate(StatefulRedisConnection<String, String> conn) {
+		this.syncCommands = conn.sync();
+		this.asyncCommands = conn.async();
 	}
 
 	public void expire(String key, long seconds) {

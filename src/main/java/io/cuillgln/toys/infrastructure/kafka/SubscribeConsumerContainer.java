@@ -15,21 +15,19 @@ public class SubscribeConsumerContainer<K, V> {
 
 	private Logger log = LoggerFactory.getLogger(SubscribeConsumerContainer.class);
 
-	private ConsumerFactory<K, V> factory;
 	private Collection<String> topics;
 	private MessageHandler<K, V> messageHandler;
 
-	private volatile boolean running;
 	private Consumer<K, V> consumer;
+	private volatile boolean running;
 
-	public SubscribeConsumerContainer(String[] topics, MessageHandler<K, V> messageHandler, ConsumerFactory<K, V> factory) {
+	public SubscribeConsumerContainer(String[] topics, MessageHandler<K, V> messageHandler, Consumer<K, V> consumer) {
 		this.topics = Arrays.asList(topics);
 		this.messageHandler = messageHandler;
-		this.factory = factory;
+		this.consumer = consumer;
 	}
 
 	public void start() {
-		this.consumer = factory.createConsumer();
 		this.consumer.subscribe(topics);
 		this.running = true;
 		Thread consumerThread = new Thread(new ConsumerRunner());

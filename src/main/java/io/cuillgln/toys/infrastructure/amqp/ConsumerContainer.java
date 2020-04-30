@@ -1,62 +1,59 @@
 
 package io.cuillgln.toys.infrastructure.amqp;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.rabbitmq.client.*;
 import com.rabbitmq.client.AMQP.BasicProperties;
+import com.rabbitmq.client.*;
 
-public class ConsumerContainer {
+public class ConsumerContainer implements Closeable {
 
 	private Logger log = LoggerFactory.getLogger(ConsumerContainer.class);
 
 	private MessageHandler messageHandler;
 	private CachedConnectionFactory factory;
-	private volatile boolean running;
 	private Channel channel;
 	private String queueName;
 	private String exchange;
 	private String routingKey;
 
 	public ConsumerContainer(String queueName, MessageHandler msgHandler, CachedConnectionFactory factory) {
-		this.factory = factory;
-		this.messageHandler = msgHandler;
-		this.queueName = queueName;
+		try {
+			this.factory = factory;
+			this.messageHandler = msgHandler;
+			this.queueName = queueName;
+			doConnect();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public ConsumerContainer(String exchange, String routingKey, MessageHandler msgHandler,
 					CachedConnectionFactory factory) {
-		this.factory = factory;
-		this.messageHandler = msgHandler;
-		this.exchange = exchange;
-		this.routingKey = routingKey;
-	}
-
-	public void start() {
 		try {
+			this.factory = factory;
+			this.messageHandler = msgHandler;
+			this.exchange = exchange;
+			this.routingKey = routingKey;
 			doConnect();
-			running = true;
-		} catch (IOException | TimeoutException e) {
-			log.error("connect to rabbitmq broker failed, try to connect again after 5 seconds...");
-			start();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
 		}
 	}
 
-	public void stop() {
+	@Override
+	public void close() throws IOException {
+		log.info("rabbitmq consumer connection channel closed");
 		try {
-			running = false;
 			channel.close();
-		} catch (IOException | TimeoutException e) {
-			log.error("Exception when close rabbitmq ConsumerClient", e);
+		} catch (TimeoutException e) {
+			throw new IOException(e);
 		}
-	}
-
-	public boolean isRunning() {
-		return running;
 	}
 
 	private void doConnect() throws IOException, TimeoutException {
@@ -70,6 +67,7 @@ public class ConsumerContainer {
 		// autoAck
 		ch.basicConsume(queueName, true, new SubscribeConsumer(ch));
 		this.channel = ch;
+		log.info("rabbitmq consumer connection channel established");
 	}
 
 	private class SubscribeConsumer extends DefaultConsumer {
@@ -84,4 +82,5 @@ public class ConsumerContainer {
 			messageHandler.handle(body);
 		}
 	}
+
 }

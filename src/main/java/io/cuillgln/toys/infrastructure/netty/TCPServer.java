@@ -15,43 +15,28 @@ public class TCPServer {
 
 	private Logger log = LoggerFactory.getLogger(TCPServer.class);
 
-	private EventLoopGroup bossGroup = new NioEventLoopGroup();
-	private EventLoopGroup workerGroup = new NioEventLoopGroup();
-	private volatile boolean running;
+	private EventLoopGroup bossGroup;
+	private EventLoopGroup workerGroup;
 	private int inetPort;
 	private ChannelInitializer<Channel> channelInitializer;
 
 	public TCPServer(int inetPort, ChannelInitializer<Channel> channelInitializer) {
-		this.inetPort = inetPort;
-		this.channelInitializer = channelInitializer;
-	}
-
-	public void start() {
-		if (running) {
-			throw new IllegalStateException("The server is running");
-		}
-		if (workerGroup.isShutdown() || bossGroup.isShutdown()) {
-			throw new IllegalStateException("The server has been stopped, cann't be start again."
-							+ " You should renew an instance and call start().");
-		}
 		try {
+			this.inetPort = inetPort;
+			this.channelInitializer = channelInitializer;
+			this.bossGroup = new NioEventLoopGroup();
+			this.workerGroup = new NioEventLoopGroup();
 			doBind();
-			running = true;
-			log.info("TCP server is running on port {}", inetPort);
 		} catch (IOException e) {
-			log.error("Exception when bind to TCP port [{}], stop the server", inetPort, e);
-			stop();
+			shutdown();
+			throw new RuntimeException(e);
 		}
 	}
 
-	public void stop() {
-		this.running = false;
+	public void shutdown() {
+		log.info("TCP server shutdown");
 		workerGroup.shutdownGracefully();
 		bossGroup.shutdownGracefully();
-	}
-
-	public boolean isRunning() {
-		return running;
 	}
 
 	private void doBind() throws IOException {
@@ -63,6 +48,8 @@ public class TCPServer {
 		ChannelFuture future = bootstrap.bind(inetPort).awaitUninterruptibly();
 		if (!future.isSuccess()) {
 			throw new IOException(future.cause());
+		} else {
+			log.info("TCP server is running on port {}", inetPort);
 		}
 	}
 }

@@ -6,6 +6,7 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -13,11 +14,11 @@ import java.util.concurrent.Executors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TCPClient {
+public class TCPClient implements Closeable {
 
 	private Logger log = LoggerFactory.getLogger(TCPClient.class);
 
-	private EventLoopGroup group = new NioEventLoopGroup();
+	private EventLoopGroup group;
 	private volatile boolean running;
 
 	private String inetHost;
@@ -28,39 +29,20 @@ public class TCPClient {
 	private volatile int reconnectCounter = 0;
 
 	public TCPClient(String inetHost, int inetPort, ChannelInitializer<Channel> channelInitializer) {
-		this.inetHost = inetHost;
-		this.inetPort = inetPort;
-		this.channelInitializer = channelInitializer;
-	}
-
-	public void start() {
-		if (running) {
-			throw new IllegalStateException("The client is running");
-		}
-		if (group.isShutdown()) {
-			throw new IllegalStateException("The client has been stopped, cann't be start again."
-							+ " You should renew an instance and call start().");
-		}
-
 		try {
+			this.inetHost = inetHost;
+			this.inetPort = inetPort;
+			this.channelInitializer = channelInitializer;
+			this.group = new NioEventLoopGroup();
 			doConnect();
-			running = true;
-			log.info("TCP client has connected to [{}:{}]", inetHost, inetPort);
+			this.running = true;
 		} catch (IOException e) {
-			log.error("connect to [{}:{}] faild, try reconnect after 5 seconds {} time(s)",
-							inetHost, inetPort, ++reconnectCounter);
-			try {
-				Thread.sleep(5000);
-			} catch (InterruptedException e1) {
-			}
-			start();
+			throw new RuntimeException(e);
 		}
 	}
 
-	public void stop() {
-		if (!running) {
-			return;
-		}
+	@Override
+	public void close() throws IOException {
 		running = false;
 		group.shutdownGracefully();
 	}
@@ -78,9 +60,22 @@ public class TCPClient {
 		if (!future.isSuccess()) {
 			future.channel().pipeline().deregister();
 			throw new IOException(future.cause());
+		} else {
+			log.info("TCP client has connected to [{}:{}]", inetHost, inetPort);
 		}
 
 		future.channel().closeFuture().addListener(new CloseFutureListener());
+	}
+
+	private void reconnect() throws InterruptedException {
+		try {
+			doConnect();
+		} catch (IOException e) {
+			log.error("reconnect to [{}:{}] faild, try reconnect after 5 seconds {} time(s)",
+							inetHost, inetPort, ++reconnectCounter);
+			Thread.sleep(5000);
+			reconnect();
+		}
 	}
 
 	private class CloseFutureListener implements ChannelFutureListener {
@@ -94,15 +89,15 @@ public class TCPClient {
 
 					@Override
 					public void run() {
-						log.error("the connection to [{}] closed unexpectly, try reconnect after 5 seconds {} time(s)",
-										future.channel().remoteAddress().toString(), ++reconnectCounter);
 						try {
-							Thread.sleep(5000);
+							log.error("the connection to [{}] closed unexpectly, try reconnect after 0.1 seconds",
+											future.channel().remoteAddress().toString());
+							reconnectCounter = 0;
+							Thread.sleep(100);
+							reconnect();
 						} catch (InterruptedException e) {
+							// just exit the reconnect thread
 						}
-						reconnectCounter = 0;
-						running = false;
-						start();
 					}
 				});
 			}

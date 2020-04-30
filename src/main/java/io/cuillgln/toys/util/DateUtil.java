@@ -1,5 +1,5 @@
 
-package io.cuillgln.toys.infrastructure.util;
+package io.cuillgln.toys.util;
 
 import java.text.ParseException;
 import java.util.Date;

@@ -15,22 +15,20 @@ public class ManualAssignConsumerContainer<K, V> {
 
 	private Logger log = LoggerFactory.getLogger(ManualAssignConsumerContainer.class);
 
-	private ConsumerFactory<K, V> factory;
 	private Collection<TopicPartition> topicPartitions;
 	private MessageHandler<K, V> messageHandler;
 
-	private volatile boolean running;
 	private Consumer<K, V> consumer;
+	private volatile boolean running;
 
-	public ManualAssignConsumerContainer(Collection<TopicPartition> topicPartitions, MessageHandler<K, V> messageHandler,
-					ConsumerFactory<K, V> factory) {
+	public ManualAssignConsumerContainer(Collection<TopicPartition> topicPartitions,
+					MessageHandler<K, V> messageHandler, Consumer<K, V> consumer) {
 		this.topicPartitions = topicPartitions;
 		this.messageHandler = messageHandler;
-		this.factory = factory;
+		this.consumer = consumer;
 	}
 
 	public void start() {
-		this.consumer = factory.createConsumer();
 		this.consumer.assign(topicPartitions);
 		this.running = true;
 		Thread consumerThread = new Thread(new ConsumerRunner());

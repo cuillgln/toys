@@ -1,6 +1,7 @@
 
 package io.cuillgln.toys.infrastructure.amqp;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 
@@ -11,7 +12,7 @@ import com.rabbitmq.client.AMQP.BasicProperties;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 
-public class Producer {
+public class Producer implements Closeable {
 
 	private Logger log = LoggerFactory.getLogger(Producer.class);
 
@@ -27,11 +28,13 @@ public class Producer {
 		}
 	}
 
-	public void close() {
+	@Override
+	public void close() throws IOException {
+		log.info("rabbitmq producer connection channel closed");
 		try {
 			channel.close();
-		} catch (IOException | TimeoutException e) {
-			log.error("Exception when close rabbitmq ProducerClient", e);
+		} catch (TimeoutException e) {
+			throw new IOException(e);
 		}
 	}
 
@@ -43,5 +46,6 @@ public class Producer {
 		Connection conn = factory.newConnection();
 		Channel ch = conn.createChannel();
 		this.channel = ch;
+		log.info("rabbitmq producer connection channel established");
 	}
 }
