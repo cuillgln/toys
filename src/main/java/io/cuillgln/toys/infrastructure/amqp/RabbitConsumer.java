@@ -23,6 +23,7 @@ public class RabbitConsumer implements Closeable {
 
 	public RabbitConsumer(Channel channel, String queueName, MessageHandler msgHandler) {
 		try {
+			this.channel = channel;
 			this.messageHandler = msgHandler;
 			this.queueName = queueName;
 			doSubscribe();
@@ -33,6 +34,7 @@ public class RabbitConsumer implements Closeable {
 
 	public RabbitConsumer(Channel channel, String exchange, String routingKey, MessageHandler msgHandler) {
 		try {
+			this.channel = channel;
 			this.messageHandler = msgHandler;
 			this.exchange = exchange;
 			this.routingKey = routingKey;

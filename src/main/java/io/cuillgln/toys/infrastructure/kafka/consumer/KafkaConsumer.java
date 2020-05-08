@@ -79,4 +79,8 @@ public class KafkaConsumer<K, V> implements Closeable {
 		}
 	}
 
+	public static interface MessageHandler<K, V> {
+
+		void handle(ConsumerRecord<K, V> record);
+	}
 }

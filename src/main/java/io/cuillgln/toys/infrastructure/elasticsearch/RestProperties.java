@@ -5,7 +5,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class ElasticsearchProperties {
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+@ConfigurationProperties(prefix = "spring.elasticsearch.rest")
+public class RestProperties {
 
 	private List<String> uris = new ArrayList<>(Collections.singletonList("http://localhost:9200"));
 
