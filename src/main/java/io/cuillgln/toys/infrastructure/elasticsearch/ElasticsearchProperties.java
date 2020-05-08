@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class ESConfigurationProperties {
+public class ElasticsearchProperties {
 
 	private List<String> uris = new ArrayList<>(Collections.singletonList("http://localhost:9200"));
 

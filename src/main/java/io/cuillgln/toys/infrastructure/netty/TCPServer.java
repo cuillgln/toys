@@ -28,7 +28,6 @@ public class TCPServer {
 			this.workerGroup = new NioEventLoopGroup();
 			doBind();
 		} catch (IOException e) {
-			shutdown();
 			throw new RuntimeException(e);
 		}
 	}

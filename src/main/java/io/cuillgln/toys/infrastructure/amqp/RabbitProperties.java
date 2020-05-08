@@ -1,7 +1,10 @@
 
 package io.cuillgln.toys.infrastructure.amqp;
 
-public class RabbitConfigurationProperties {
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+@ConfigurationProperties(prefix = "spring.rabbitmq")
+public class RabbitProperties {
 
 	private String host = "localhost";
 

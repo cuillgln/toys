@@ -1,7 +1,10 @@
 
 package io.cuillgln.toys.infrastructure.redis;
 
-public class RedisConfigurationProperties {
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+@ConfigurationProperties(prefix = "spring.redis")
+public class RedisProperties {
 
 	private int database = 0;
 

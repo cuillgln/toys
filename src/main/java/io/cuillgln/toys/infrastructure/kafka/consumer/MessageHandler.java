@@ -1,5 +1,5 @@
 
-package io.cuillgln.toys.infrastructure.kafka;
+package io.cuillgln.toys.infrastructure.kafka.consumer;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 

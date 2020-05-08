@@ -1,11 +1,13 @@
 
-package io.cuillgln.toys.infrastructure.kafka;
+package io.cuillgln.toys.infrastructure.kafka.producer;
 
 import java.util.List;
 
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-public class KafkaProducerProperties {
+@ConfigurationProperties(prefix = "spring.kafka.producer")
+public class ProducerProperties {
 
 	private String acks;
 

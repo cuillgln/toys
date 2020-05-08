@@ -5,9 +5,9 @@ import org.apache.http.HttpHost;
 import org.elasticsearch.client.Node;
 import org.elasticsearch.client.RestClient;
 
-public class ESClientConfiguration {
+public class ElasticsearchConfiguration {
 
-	private ESConfigurationProperties properties;
+	private ElasticsearchProperties properties;
 
 	public RestClient esRestClient() {
 		Node[] nodes = new Node[properties.getUris().size()];

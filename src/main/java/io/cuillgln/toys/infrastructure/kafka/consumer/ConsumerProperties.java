@@ -1,12 +1,14 @@
 
-package io.cuillgln.toys.infrastructure.kafka;
+package io.cuillgln.toys.infrastructure.kafka.consumer;
 
 import java.time.Duration;
 import java.util.List;
 
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-public class KafkaConsumerProperties {
+@ConfigurationProperties(prefix = "spring.kafka.consumer")
+public class ConsumerProperties {
 
 	private Duration autoCommitInterval;
 

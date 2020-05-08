@@ -11,36 +11,32 @@ import org.slf4j.LoggerFactory;
 import com.rabbitmq.client.AMQP.BasicProperties;
 import com.rabbitmq.client.*;
 
-public class ConsumerContainer implements Closeable {
+public class RabbitConsumer implements Closeable {
 
-	private Logger log = LoggerFactory.getLogger(ConsumerContainer.class);
+	private Logger log = LoggerFactory.getLogger(RabbitConsumer.class);
 
 	private MessageHandler messageHandler;
-	private CachedConnectionFactory factory;
 	private Channel channel;
-	private String queueName;
 	private String exchange;
 	private String routingKey;
+	private String queueName;
 
-	public ConsumerContainer(String queueName, MessageHandler msgHandler, CachedConnectionFactory factory) {
+	public RabbitConsumer(Channel channel, String queueName, MessageHandler msgHandler) {
 		try {
-			this.factory = factory;
 			this.messageHandler = msgHandler;
 			this.queueName = queueName;
-			doConnect();
+			doSubscribe();
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	public ConsumerContainer(String exchange, String routingKey, MessageHandler msgHandler,
-					CachedConnectionFactory factory) {
+	public RabbitConsumer(Channel channel, String exchange, String routingKey, MessageHandler msgHandler) {
 		try {
-			this.factory = factory;
 			this.messageHandler = msgHandler;
 			this.exchange = exchange;
 			this.routingKey = routingKey;
-			doConnect();
+			doSubscribe();
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -56,17 +52,14 @@ public class ConsumerContainer implements Closeable {
 		}
 	}
 
-	private void doConnect() throws IOException, TimeoutException {
-		Connection conn = factory.newConnection();
-		Channel ch = conn.createChannel();
+	private void doSubscribe() throws IOException {
 		if (this.queueName == null) {
-			ch.exchangeDeclarePassive(exchange);
-			this.queueName = ch.queueDeclare().getQueue();
-			ch.queueBind(queueName, exchange, routingKey);
+			channel.exchangeDeclarePassive(exchange);
+			this.queueName = channel.queueDeclare().getQueue();
+			channel.queueBind(queueName, exchange, routingKey);
 		}
 		// autoAck
-		ch.basicConsume(queueName, true, new SubscribeConsumer(ch));
-		this.channel = ch;
+		channel.basicConsume(queueName, true, new SubscribeConsumer(channel));
 		log.info("rabbitmq consumer connection channel established");
 	}
 
@@ -81,6 +74,11 @@ public class ConsumerContainer implements Closeable {
 						throws IOException {
 			messageHandler.handle(body);
 		}
+	}
+
+	public static interface MessageHandler {
+
+		public void handle(byte[] msg);
 	}
 
 }

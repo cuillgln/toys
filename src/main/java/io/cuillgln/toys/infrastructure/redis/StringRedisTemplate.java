@@ -5,16 +5,20 @@ import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.async.RedisAsyncCommands;
 import io.lettuce.core.api.sync.RedisCommands;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.Map;
 
-public class StringRedisTemplate {
+public class StringRedisTemplate implements Closeable {
 
+	private StatefulRedisConnection<String, String> connection;
 	private RedisCommands<String, String> syncCommands;
 	private RedisAsyncCommands<String, String> asyncCommands;
 
 	public StringRedisTemplate(StatefulRedisConnection<String, String> conn) {
 		this.syncCommands = conn.sync();
 		this.asyncCommands = conn.async();
+		this.connection = conn;
 	}
 
 	public void expire(String key, long seconds) {
@@ -59,5 +63,10 @@ public class StringRedisTemplate {
 
 	public void hincr(String key, String field) {
 		this.asyncCommands.hincrby(key, field, 1);
+	}
+
+	@Override
+	public void close() throws IOException {
+		this.connection.close();
 	}
 }
