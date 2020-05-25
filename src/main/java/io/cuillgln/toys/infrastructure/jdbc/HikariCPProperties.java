@@ -3,13 +3,20 @@ package io.cuillgln.toys.infrastructure.jdbc;
 
 import java.util.Properties;
 
-public class HikariCPConfigurationProperties {
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-	private String dataSourceClassName;
+/**
+ * https://github.com/brettwooldridge/HikariCP
+ * https://javadoc.io/doc/com.zaxxer/HikariCP/3.2.0/com/zaxxer/hikari/HikariDataSource.html
+ *
+ */
+@ConfigurationProperties(prefix = "spring.datasource.hikari")
+public class HikariCPProperties {
+
 	private String jdbcUrl;
-	private String driverClassName;
 	private String username;
 	private String password;
+	private boolean autoCommit = true;
 
 	private int idleTimeout = 600000;
 	private int maxLifeTime = 1800000;
@@ -18,28 +25,12 @@ public class HikariCPConfigurationProperties {
 	private int validationTimeout = 5000;
 	private Properties dataSource;
 
-	public String getDataSourceClassName() {
-		return dataSourceClassName;
-	}
-
-	public void setDataSourceClassName(String dataSourceClassName) {
-		this.dataSourceClassName = dataSourceClassName;
-	}
-
 	public String getJdbcUrl() {
 		return jdbcUrl;
 	}
 
 	public void setJdbcUrl(String jdbcUrl) {
 		this.jdbcUrl = jdbcUrl;
-	}
-
-	public String getDriverClassName() {
-		return driverClassName;
-	}
-
-	public void setDriverClassName(String driverClassName) {
-		this.driverClassName = driverClassName;
 	}
 
 	public String getUsername() {
@@ -56,6 +47,14 @@ public class HikariCPConfigurationProperties {
 
 	public void setPassword(String password) {
 		this.password = password;
+	}
+
+	public boolean isAutoCommit() {
+		return autoCommit;
+	}
+
+	public void setAutoCommit(boolean autoCommit) {
+		this.autoCommit = autoCommit;
 	}
 
 	public int getIdleTimeout() {

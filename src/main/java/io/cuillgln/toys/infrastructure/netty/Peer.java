@@ -3,16 +3,14 @@ package io.cuillgln.toys.infrastructure.netty;
 
 import io.netty.channel.Channel;
 
-public interface L1Peer {
+public interface Peer {
 
-	void recvmsg(Channel channel, byte[] msg);
+	void recvmsg(Channel channel, PBuf msg);
 
 	void recvevt(Channel channel, Object evt);
 
 	void recvex(Channel channel, Throwable ex);
 
-	void add(Channel channel);
-
-	void remove(Channel channel);
+	void release(Channel channel);
 
 }

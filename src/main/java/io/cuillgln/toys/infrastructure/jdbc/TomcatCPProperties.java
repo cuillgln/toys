@@ -4,18 +4,14 @@ package io.cuillgln.toys.infrastructure.jdbc;
 /**
  * https://tomcat.apache.org/tomcat-8.5-doc/jdbc-pool.html
  * 
- * @author cuillgln
- *
  */
-public class TomcatCPConfigurationProperties {
+public class TomcatCPProperties {
 
 	private String driverClassName;
-
 	private String url;
-
 	private String username;
-
 	private String password;
+	private boolean defaultAutoCommit = true;
 
 	private int maxActive = 100;
 	private int maxIdle = 100;
@@ -60,6 +56,14 @@ public class TomcatCPConfigurationProperties {
 
 	public void setPassword(String password) {
 		this.password = password;
+	}
+
+	public boolean isDefaultAutoCommit() {
+		return defaultAutoCommit;
+	}
+
+	public void setDefaultAutoCommit(boolean defaultAutoCommit) {
+		this.defaultAutoCommit = defaultAutoCommit;
 	}
 
 	public int getMaxActive() {

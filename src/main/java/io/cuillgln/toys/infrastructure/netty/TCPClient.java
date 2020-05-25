@@ -6,103 +6,119 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
-import java.io.Closeable;
 import java.io.IOException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TCPClient implements Closeable {
+public class TCPClient implements Peer {
 
-	private Logger log = LoggerFactory.getLogger(TCPClient.class);
+	private Logger log = LoggerFactory.getLogger(getClass());
 
 	private EventLoopGroup group;
-	private volatile boolean running;
-
-	private String inetHost;
-	private int inetPort;
 	private ChannelInitializer<Channel> channelInitializer;
+	private List<MessageHandler> handlers;
 
-	private ExecutorService reconnectExecutor = Executors.newSingleThreadExecutor();
-	private volatile int reconnectCounter = 0;
-
-	public TCPClient(String inetHost, int inetPort, ChannelInitializer<Channel> channelInitializer) {
-		try {
-			this.inetHost = inetHost;
-			this.inetPort = inetPort;
-			this.channelInitializer = channelInitializer;
-			this.group = new NioEventLoopGroup();
-			doConnect();
-			this.running = true;
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+	public TCPClient(List<MessageHandler> handlers) {
+		this.handlers = handlers;
+		this.group = new NioEventLoopGroup();
+		this.channelInitializer = new TCPChannelInitializer(this);
 	}
 
-	@Override
-	public void close() throws IOException {
-		running = false;
-		group.shutdownGracefully();
+	public Connection connect(Connection conn) throws IOException {
+		doConnect(conn.getHost(), conn.getPort(), conn);
+		//  connection auth
+		return conn;
 	}
 
-	public boolean isRunning() {
-		return running;
-	}
-
-	private void doConnect() throws IOException {
+	private void doConnect(String host, int port, Connection conn) throws IOException {
 		Bootstrap bootstrap = new Bootstrap();
 		bootstrap.group(group).channel(NioSocketChannel.class)
 						.option(ChannelOption.SO_KEEPALIVE, true)
-						.handler(channelInitializer);
-		ChannelFuture future = bootstrap.connect(inetHost, inetPort).awaitUninterruptibly();
+						.handler(channelInitializer)
+						.attr(Connection.USER_DATA_KEY, conn);
+		ChannelFuture future = bootstrap.connect(host, port).awaitUninterruptibly();
 		if (!future.isSuccess()) {
 			future.channel().pipeline().deregister();
 			throw new IOException(future.cause());
 		} else {
-			log.info("TCP client has connected to [{}:{}]", inetHost, inetPort);
+			conn.setChannel(future.channel());
+			future.channel().closeFuture().addListener(new CloseFutureListener(conn));
+			log.info("TCP client has connected to [{}]", future.channel().remoteAddress());
 		}
-
-		future.channel().closeFuture().addListener(new CloseFutureListener());
 	}
 
-	private void reconnect() throws InterruptedException {
-		try {
-			doConnect();
-		} catch (IOException e) {
-			log.error("reconnect to [{}:{}] faild, try reconnect after 5 seconds {} time(s)",
-							inetHost, inetPort, ++reconnectCounter);
-			Thread.sleep(5000);
-			reconnect();
+	public void shutdown() {
+		this.group.shutdownGracefully();
+	}
+
+	@Override
+	public void recvmsg(Channel channel, PBuf msg) {
+		Connection conn = channel.attr(Connection.USER_DATA_KEY).get();
+		Message resp = getHandler(msg).handle(msg);
+		if (resp != null) {
+			conn.send(resp);
 		}
+	}
+
+	@Override
+	public void recvevt(Channel channel, Object evt) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void recvex(Channel channel, Throwable ex) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void release(Channel channel) {
+		Connection session = channel.attr(Connection.USER_DATA_KEY).get();
+		if (session != null) {
+			session.setChannel(null);
+		}
+
+	}
+
+	private MessageHandler getHandler(PBuf msg) {
+		for (MessageHandler handler : handlers) {
+			if (handler.canHandle(msg)) {
+				return handler;
+			}
+		}
+		throw new RuntimeException("handler not found");
 	}
 
 	private class CloseFutureListener implements ChannelFutureListener {
 
-		@Override
-		public void operationComplete(ChannelFuture future) throws Exception {
-			log.info("The connection to [{}] closed.", future.channel().remoteAddress().toString());
-			future.channel().pipeline().deregister();
-			if (running) {
-				reconnectExecutor.execute(new Runnable() {
+		private Connection conn;
 
-					@Override
-					public void run() {
-						try {
-							log.error("the connection to [{}] closed unexpectly, try reconnect after 0.1 seconds",
-											future.channel().remoteAddress().toString());
-							reconnectCounter = 0;
-							Thread.sleep(100);
-							reconnect();
-						} catch (InterruptedException e) {
-							// just exit the reconnect thread
-						}
-					}
-				});
-			}
+		public CloseFutureListener(Connection conn) {
+			this.conn = conn;
 		}
 
+		@Override
+		public void operationComplete(ChannelFuture future) throws Exception {
+			log.info("The connection to [{}] closed.", future.channel().remoteAddress());
+			future.channel().pipeline().deregister();
+			new Thread(new Runnable() {
+
+				@Override
+				public void run() {
+					try {
+						log.error("the connection to [{}] closed, try reconnect after 0.1 seconds",
+										future.channel().remoteAddress().toString());
+						Thread.sleep(100);
+						connect(conn);
+					} catch (InterruptedException | IOException e) {
+						// just exit the reconnect thread
+					}
+				}
+			}).start();
+		}
 	}
 
 }

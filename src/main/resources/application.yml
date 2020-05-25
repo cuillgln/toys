@@ -13,6 +13,16 @@ server:
 
 ### spring
 spring:
+  datasource:
+    hikari:
+      jdbcUrl: jdbc:mysql://172.20.182.231:3306/bus_stop?characterEncoding=utf8&useSSL=false
+      username: root
+      password: root
+      idle-timeout: 600000
+      max-life-time: 1800000
+      minimum-idle: 10
+      maximum-pool-sie: 20
+      validatation-timeout: 5000
   redis:
     host: localhost
     port: 6379
