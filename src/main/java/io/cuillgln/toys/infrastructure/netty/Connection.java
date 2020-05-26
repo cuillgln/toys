@@ -13,6 +13,10 @@ public interface Connection {
 	public int getPort();
 
 	public void setChannel(Channel channel);
+	
+	public void setAutenticated(boolean flag);
+	
+	public boolean isAuthenticated();
 
 	public void send(Message msg);
 }

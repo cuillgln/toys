@@ -18,18 +18,22 @@ class TCPServer implements Peer {
 
 	private EventLoopGroup bossGroup;
 	private EventLoopGroup workerGroup;
-	private int inetPort;
 	private ChannelInitializer<Channel> channelInitializer;
+
+	private ServerProperties config;
+	private ConnectionManager connectionManager;
 	private List<MessageHandler> handlers;
 
-	public TCPServer(int inetPort, List<MessageHandler> handlers) {
+	public TCPServer(ServerProperties config, ConnectionManager connectionManager, List<MessageHandler> handlers) {
 		try {
-			this.inetPort = inetPort;
+			this.config = config;
+			this.connectionManager = connectionManager;
 			this.handlers = handlers;
-			this.channelInitializer = new TCPChannelInitializer(this);
+
 			this.bossGroup = new NioEventLoopGroup();
 			this.workerGroup = new NioEventLoopGroup();
-			doBind();
+			this.channelInitializer = new TCPChannelInitializer(this);
+			doBind(config.getPort());
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -41,7 +45,7 @@ class TCPServer implements Peer {
 		bossGroup.shutdownGracefully();
 	}
 
-	private void doBind() throws IOException {
+	private void doBind(int inetPort) throws IOException {
 		ServerBootstrap bootstrap = new ServerBootstrap();
 		bootstrap.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class)
 						.childHandler(channelInitializer)
@@ -57,14 +61,18 @@ class TCPServer implements Peer {
 
 	@Override
 	public void recvmsg(Channel channel, PBuf msg) {
+		Connection conn = channel.attr(Connection.USER_DATA_KEY).get();
 		if (false) { // auth msg
 			//			Connection conn = get(msg);
 			//			conn.setChannel(channel);
 			//			channel.attr(Connection.USER_DATA_KEY).set(conn);
 		} else {
-			//			Connection conn = channel.attr(Connection.USER_DATA_KEY).get();
 			//			Message resp = new Object();
 			//			conn.send(resp);
+		}
+		Message resp = getHandler(msg).handle(msg);
+		if (resp != null) {
+			conn.send(resp);
 		}
 	}
 
@@ -82,7 +90,12 @@ class TCPServer implements Peer {
 
 	@Override
 	public void release(Channel channel) {
-		// TODO Auto-generated method stub
+		Connection conn = channel.attr(Connection.USER_DATA_KEY).get();
+		if (conn != null) {
+			conn.setChannel(null);
+			conn.setAutenticated(false);
+			channel.attr(Connection.USER_DATA_KEY).set(null);
+		}
 
 	}
 
