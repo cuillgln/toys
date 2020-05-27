@@ -78,14 +78,12 @@ class TCPServer implements Peer {
 
 	@Override
 	public void recvevt(Channel channel, Object evt) {
-		// TODO Auto-generated method stub
-
+		log.info("received EVENT: {}", evt);
 	}
 
 	@Override
 	public void recvex(Channel channel, Throwable ex) {
-		// TODO Auto-generated method stub
-
+		log.info("");
 	}
 
 	@Override
@@ -93,7 +91,7 @@ class TCPServer implements Peer {
 		Connection conn = channel.attr(Connection.USER_DATA_KEY).get();
 		if (conn != null) {
 			conn.setChannel(null);
-			conn.setAutenticated(false);
+			conn.setAuthenticated(false);
 			channel.attr(Connection.USER_DATA_KEY).set(null);
 		}
 

@@ -2,8 +2,11 @@
 package io.cuillgln.toys.infrastructure.kafka.consumer;
 
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -118,5 +121,15 @@ public class ConsumerProperties {
 
 	public void setMaxPollRecords(Integer maxPollRecords) {
 		this.maxPollRecords = maxPollRecords;
+	}
+
+	public Map<String, Object> buildProperties() {
+		Map<String, Object> properties = new HashMap<>();
+		properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, getBootstrapServers());
+		properties.put(ConsumerConfig.GROUP_ID_CONFIG, getGroupId());
+		properties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, getEnableAutoCommit());
+		properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, getKeyDeserializer());
+		properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, getValueDeserializer());
+		return properties;
 	}
 }
