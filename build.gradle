@@ -18,13 +18,29 @@ configurations {
 }
 repositories {
     maven { url "https://maven.aliyun.com/repository/central" }
+    // maven { url "https://repo.osgeo.org/repository/release/"}
 	mavenCentral()
 }
 
 dependencies {
+	
+	implementation 'javax.mail:javax.mail-api:1.6.2'
+	// gis jts
+	implementation 'org.locationtech.jts:jts-core:1.16.1'
+	// implementation 'org.geotools:gt-main:23.0'
+	// implementation 'org.geotools:gt-epsg-hsql:23.0'
+	// implementation 'org.geotools:gt-referencing:23.0'
 
 	// netty
 	implementation 'io.netty:netty-all:4.1.15.Final'
+	
+	// hibernate
+	// implementation 'org.hibernate:hibernate-hikaricp:5.3.10.Final';
+	implementation 'org.hibernate:hibernate-core:5.3.10.Final';
+	implementation 'mysql:mysql-connector-java:5.1.41'
+	// connection pool
+	implementation 'com.zaxxer:HikariCP:3.2.0'
+	implementation 'org.apache.tomcat:tomcat-jdbc:8.5.43'
 
 	// elasticsearch low-level-rest-client
 	implementation 'org.elasticsearch.client:elasticsearch-rest-client:7.2.0'
@@ -35,9 +51,8 @@ dependencies {
 	implementation 'org.apache.kafka:kafka-clients:1.1.1'
 	// rabbitmq
 	implementation 'com.rabbitmq:amqp-client:5.7.3'
-	// connection pool
-	implementation 'com.zaxxer:HikariCP:3.4.2'
-	implementation 'org.apache.tomcat:tomcat-jdbc:8.5.43'
+	// mqtt
+	implementation 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.4'
 	
 	// jackson json
 	// implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.9'
@@ -64,7 +79,9 @@ dependencies {
 }
 
 task createdir {
-	sourceSets*.java.srcDirs*.each { it.mkdirs() }
-    sourceSets*.resources.srcDirs*.each { it.mkdirs()}
+	doLast {
+		sourceSets*.java.srcDirs*.each { it.mkdirs() }
+	    sourceSets*.resources.srcDirs*.each { it.mkdirs()}
+	}
 }
 

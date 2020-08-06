@@ -2,6 +2,7 @@
 package io.cuillgln.toys.infrastructure.elasticsearch;
 
 import java.util.Collection;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -37,14 +38,14 @@ public class SearchHits<T> {
 
 	static class Total {
 
-		private Integer value;
+		private long value;
 		private String relation;
 
-		public Integer getValue() {
+		public long getValue() {
 			return value;
 		}
 
-		public void setValue(Integer value) {
+		public void setValue(long value) {
 			this.value = value;
 		}
 
@@ -70,6 +71,8 @@ public class SearchHits<T> {
 		private Float score;
 		@JsonProperty("_source")
 		private S source;
+		@JsonProperty("sort")
+		private List<Object> sort;
 
 		public String getIndex() {
 			return index;
@@ -89,6 +92,10 @@ public class SearchHits<T> {
 
 		public S getSource() {
 			return source;
+		}
+
+		public List<Object> getSort() {
+			return sort;
 		}
 
 	}
