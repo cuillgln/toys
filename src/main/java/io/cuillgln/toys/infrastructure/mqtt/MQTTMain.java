@@ -14,7 +14,7 @@ public class MQTTMain {
 		String topic = "realdata";
 		String content = "Message from MqttPublishSample";
 		int qos = 2;
-		String broker = "tcp://106.14.169.36:1883";
+		String broker = "tcp://47.116.78.108:1883";
 		// String broker = "tcp://172.20.182.231:1883";
 		String clientId = "consumer-cuillgln";
 
@@ -22,8 +22,8 @@ public class MQTTMain {
 		try {
 			MqttClient sampleClient = new MqttClient(broker, clientId, persistence);
 			MqttConnectOptions connOpts = new MqttConnectOptions();
-			connOpts.setUserName("sdy");
-			connOpts.setPassword("sdgl".toCharArray());
+			connOpts.setUserName("root");
+			connOpts.setPassword("root123".toCharArray());
 			connOpts.setCleanSession(true);
 			System.out.println("Connecting to broker: " + broker);
 			sampleClient.connect(connOpts);

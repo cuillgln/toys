@@ -13,9 +13,19 @@ server:
 
 ### spring
 spring:
+#  datasource:
+#    url: jdbc:mysql://172.20.182.211:3306/jtfile?characterEncoding=utf8&useSSL=false
+#    username: root
+#    password: root
+#    driver-class-name: com.mysql.jdbc.Driver
+#  datasource:
+#    url: jdbc:oracle:thin:@172.20.32.76:1521:ORCL
+#    username: gdzr
+#    password: gdzr
+#    driver-class-name: oracle.jdbc.driver.OracleDriver
   datasource:
     hikari:
-      jdbcUrl: jdbc:mysql://172.20.182.231:3306/bus_stop?characterEncoding=utf8&useSSL=false
+      jdbc-url: jdbc:mysql://172.20.182.231:3306/bus_stop?characterEncoding=utf8&useSSL=false
       username: root
       password: root
       idle-timeout: 600000

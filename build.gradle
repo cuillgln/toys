@@ -24,7 +24,11 @@ repositories {
 
 dependencies {
 	
-	implementation 'javax.mail:javax.mail-api:1.6.2'
+	// jmh
+	// testImplementation 'org.openjdk.jmh:jmh-core:1.26'
+	// testImplementation 'org.openjdk.jmh:jmh-generator-annprocess:1.26'
+	
+	// implementation 'javax.mail:javax.mail-api:1.6.2'
 	// gis jts
 	implementation 'org.locationtech.jts:jts-core:1.16.1'
 	// implementation 'org.geotools:gt-main:23.0'

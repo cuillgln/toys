@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.Collection;
 
 import org.apache.kafka.clients.consumer.Consumer;
+import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.common.TopicPartition;
@@ -37,7 +38,7 @@ public class KafkaConsumer<K, V> implements Closeable {
 	}
 
 	public KafkaConsumer(Collection<TopicPartition> topicPartitions, MessageHandler<K, V> messageHandler,
-					Consumer<K, V> consumer) {
+			Consumer<K, V> consumer) {
 		this.messageHandler = messageHandler;
 		consumer.assign(topicPartitions);
 		Thread consumerThread = new Thread(new ConsumerRunner());
@@ -55,7 +56,6 @@ public class KafkaConsumer<K, V> implements Closeable {
 	@Override
 	public void close() throws IOException {
 		consumer.wakeup();
-		consumer.close();
 	}
 
 	private class ConsumerRunner implements Runnable {
@@ -75,8 +75,25 @@ public class KafkaConsumer<K, V> implements Closeable {
 				log.info("The kafka consumer thread received wakeup SIGNAL, and exit");
 			} finally {
 				log.info("The kafka consumer thread exit");
+				consumer.close();
 			}
 		}
+	}
+
+	private class HandleRebalance implements ConsumerRebalanceListener {
+
+		@Override
+		public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
+			// TODO Auto-generated method stub
+
+		}
+
+		@Override
+		public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
+			// commit
+			// consumer.commitSync(offsets);
+		}
+
 	}
 
 	public static interface MessageHandler<K, V> {
